@@ -1,0 +1,423 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sleep Score Calculator</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #0f172a;
+      --card: rgba(255, 255, 255, 0.08);
+      --card-strong: rgba(255, 255, 255, 0.12);
+      --accent: #8ee0d0;
+      --accent-2: #c7b6ff;
+      --text: #f8fafc;
+      --muted: #cbd5f5;
+      --shadow: 0 20px 60px rgba(0, 0, 0, 0.35);
+      --radius: 20px;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: 'Space Grotesk', 'Segoe UI', sans-serif;
+      background: radial-gradient(circle at 20% 20%, rgba(200, 191, 255, 0.16), transparent 30%),
+        radial-gradient(circle at 80% 10%, rgba(107, 255, 223, 0.15), transparent 30%),
+        linear-gradient(135deg, #0b1224, #0f172a 50%, #121f36);
+      color: var(--text);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 48px 24px 64px;
+    }
+
+    .app {
+      width: min(1100px, 100%);
+      background: var(--card);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 28px;
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(12px);
+      padding: 40px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .app::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(circle at 40% 0%, rgba(255, 255, 255, 0.05), transparent 30%),
+        radial-gradient(circle at 80% 60%, rgba(142, 224, 208, 0.08), transparent 32%);
+      pointer-events: none;
+    }
+
+    .header {
+      position: relative;
+      z-index: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      margin-bottom: 28px;
+    }
+
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: var(--card-strong);
+      color: var(--muted);
+      padding: 10px 16px;
+      border-radius: 999px;
+      font-size: 14px;
+      letter-spacing: 0.4px;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: clamp(28px, 4vw, 40px);
+      line-height: 1.1;
+      letter-spacing: -0.5px;
+    }
+
+    p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 16px;
+      max-width: 700px;
+    }
+
+    .grid {
+      position: relative;
+      z-index: 1;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 24px;
+      align-items: stretch;
+    }
+
+    .panel {
+      background: var(--card-strong);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: var(--radius);
+      padding: 24px;
+      box-shadow: var(--shadow);
+      position: relative;
+    }
+
+    label {
+      display: flex;
+      justify-content: space-between;
+      color: var(--muted);
+      font-weight: 500;
+      margin-bottom: 12px;
+      letter-spacing: 0.1px;
+    }
+
+    input[type="number"],
+    input[type="time"],
+    select {
+      width: 100%;
+      padding: 14px 16px;
+      border-radius: 14px;
+      border: 1px solid rgba(255, 255, 255, 0.18);
+      background: rgba(255, 255, 255, 0.07);
+      color: var(--text);
+      font-size: 16px;
+      outline: none;
+      transition: border 0.2s ease, transform 0.2s ease;
+    }
+
+    input:focus,
+    select:focus {
+      border-color: var(--accent);
+      transform: translateY(-1px);
+    }
+
+    select option {
+      color: #0b1224;
+      background: #f0f4ff;
+      font-weight: 600;
+    }
+
+    .button {
+      margin-top: 12px;
+      width: 100%;
+      padding: 16px;
+      border: none;
+      border-radius: 16px;
+      background: linear-gradient(120deg, var(--accent), var(--accent-2));
+      color: #0b1224;
+      font-weight: 700;
+      font-size: 17px;
+      letter-spacing: 0.4px;
+      cursor: pointer;
+      transition: transform 0.15s ease, box-shadow 0.2s ease;
+      box-shadow: 0 12px 30px rgba(142, 224, 208, 0.25);
+    }
+
+    .button:hover {
+      transform: translateY(-2px);
+    }
+
+    .score-card {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .score-value {
+      font-size: clamp(48px, 8vw, 72px);
+      font-weight: 700;
+      letter-spacing: -2px;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 14px;
+      border-radius: 12px;
+      background: rgba(255, 255, 255, 0.08);
+      color: var(--muted);
+      font-weight: 600;
+      letter-spacing: 0.2px;
+    }
+
+    .explanation {
+      background: rgba(255, 255, 255, 0.06);
+      padding: 16px;
+      border-radius: 14px;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      color: var(--text);
+      line-height: 1.4;
+      font-size: 20px;
+      font-weight: 700;
+      letter-spacing: 0.2px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      color: var(--text);
+      border-radius: 14px;
+      overflow: hidden;
+    }
+
+    th, td {
+      padding: 14px 12px;
+      text-align: left;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    th {
+      background: rgba(255, 255, 255, 0.06);
+      font-size: 14px;
+      letter-spacing: 0.2px;
+    }
+
+    tr:last-child td {
+      border-bottom: none;
+    }
+
+    .note {
+      margin-top: 12px;
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    @media (max-width: 720px) {
+      .app {
+        padding: 28px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="app">
+    <section class="header">
+      <span class="pill">🌙 Sleep Pulse</span>
+      <h1>Sleep Score Calculator</h1>
+      <p>Check in with your rest. Enter last night&rsquo;s sleep hours and bed time to see how they combine into your personal sleep score.</p>
+    </section>
+
+    <section class="grid">
+      <div class="panel">
+        <label for="hours">
+          Hours slept
+          <span id="hours-value">7.5 h</span>
+        </label>
+        <select id="hours" aria-label="Hours slept"></select>
+
+        <label for="bedtime" style="margin-top:18px;">
+          Bed time (24h)
+          <span id="bedtime-value">22:00</span>
+        </label>
+        <select id="bedtime" aria-label="Bed time"></select>
+
+        <button class="button" id="calculate">Calculate my sleep score</button>
+      </div>
+
+      <div class="panel score-card">
+        <div class="badge">Your sleep score</div>
+        <div class="score-value" id="score">9.5</div>
+        <div class="explanation" id="explanation">A: --   B: --</div>
+      </div>
+    </section>
+
+    <section class="panel" style="margin-top:24px;">
+      <div class="badge">Scoring tables</div>
+      <div class="grid" style="margin-top:12px; gap:16px;">
+        <div class="panel" style="padding:18px;">
+          <div class="badge" style="margin-bottom:10px;">Hours slept → A</div>
+          <table>
+            <thead>
+              <tr>
+                <th>Hours range</th>
+                <th>A score</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr><td>0 to 3</td><td>0</td></tr>
+              <tr><td>3 to 4</td><td>2</td></tr>
+              <tr><td>4 to 5</td><td>4</td></tr>
+              <tr><td>5 to 6</td><td>6</td></tr>
+              <tr><td>6 to 7</td><td>8</td></tr>
+              <tr><td>7 to 8</td><td>9</td></tr>
+              <tr><td>8 to 11+</td><td>10</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="panel" style="padding:18px;">
+          <div class="badge" style="margin-bottom:10px;">Bed time → B</div>
+          <table>
+            <thead>
+              <tr>
+                <th>Bed time (24h)</th>
+                <th>B score</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr><td>21:00 or 22:00</td><td>10</td></tr>
+              <tr><td>22:00–23:00</td><td>8</td></tr>
+              <tr><td>23:00–00:00</td><td>6</td></tr>
+              <tr><td>00:00–01:00</td><td>4</td></tr>
+              <tr><td>01:00–02:00</td><td>2</td></tr>
+              <tr><td>02:00–03:00+</td><td>0</td></tr>
+              <tr><td>Before 21:00</td><td>10 (assumed best)</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <div class="note">Score formula: (A + B) / 2. Earlier than 21:00 is treated as best (10) to keep the scale generous for early bedtimes.</div>
+    </section>
+  </main>
+
+  <script>
+    const hoursInput = document.getElementById('hours');
+    const bedtimeInput = document.getElementById('bedtime');
+    const hoursValue = document.getElementById('hours-value');
+    const bedtimeValue = document.getElementById('bedtime-value');
+    const scoreEl = document.getElementById('score');
+    const explanationEl = document.getElementById('explanation');
+    const button = document.getElementById('calculate');
+
+    const clamp = (val, min, max) => Math.min(Math.max(val, min), max);
+
+    const getHoursScore = (hours) => {
+      if (hours <= 3) return 0;
+      if (hours <= 4) return 2;
+      if (hours <= 5) return 4;
+      if (hours <= 6) return 6;
+      if (hours <= 7) return 8;
+      if (hours < 8) return 9;
+      return 10; // 8 to 11+
+    };
+
+    const getBedtimeScore = (hour, minute) => {
+      // Shift clock so 21:00 becomes minute 0 and ranges stay ordered across midnight.
+      const minutes = hour * 60 + minute;
+      const anchor = 21 * 60; // 21:00
+      const shifted = (minutes - anchor + 1440) % 1440;
+
+      if (shifted <= 60) return 10;       // 21:00–22:00
+      if (shifted <= 120) return 8;       // (22:00–23:00]
+      if (shifted <= 180) return 6;       // (23:00–00:00]
+      if (shifted <= 240) return 4;       // (00:00–01:00]
+      if (shifted <= 300) return 2;       // (01:00–02:00]
+      if (shifted <= 360) return 0;       // (02:00–03:00+]
+      return 10;                          // earlier than 21:00 treated as best
+    };
+
+    const formatTime = (hour, minute = 0) => {
+      const h = hour.toString().padStart(2, '0');
+      const m = minute.toString().padStart(2, '0');
+      return `${h}:${m}`;
+    };
+
+    const updateLabels = () => {
+      hoursValue.textContent = `${hoursInput.value} h`;
+      const [h, m] = bedtimeInput.value.split(':').map(Number);
+      bedtimeValue.textContent = formatTime(h ?? 0, m ?? 0);
+    };
+
+    const calculate = () => {
+      const rawHours = parseFloat(hoursInput.value) || 0;
+      const hours = clamp(rawHours, 0, 14);
+      hoursInput.value = hours.toString();
+
+      const [hourPart, minutePart] = bedtimeInput.value.split(':').map(Number);
+      const bedtimeHour = clamp(Number.isFinite(hourPart) ? hourPart : 0, 0, 23);
+      const bedtimeMinute = clamp(Number.isFinite(minutePart) ? minutePart : 0, 0, 59);
+
+      const a = getHoursScore(hours);
+      const b = getBedtimeScore(bedtimeHour, bedtimeMinute);
+      const score = ((a + b) / 2).toFixed(1);
+
+      scoreEl.textContent = score;
+      explanationEl.textContent = `A: ${a}     B: ${b}`;
+      updateLabels();
+    };
+
+    const buildHoursOptions = () => {
+      for (let h = 0; h <= 14; h += 0.5) {
+        const option = document.createElement('option');
+        option.value = h.toString();
+        option.textContent = `${h} h`;
+        hoursInput.appendChild(option);
+      }
+      hoursInput.value = '7.5';
+    };
+
+    const buildBedtimeOptions = () => {
+      for (let minutes = 0; minutes < 1440; minutes += 15) {
+        const hour = Math.floor(minutes / 60);
+        const minute = minutes % 60;
+        const label = formatTime(hour, minute);
+        const option = document.createElement('option');
+        option.value = label;
+        option.textContent = label;
+        bedtimeInput.appendChild(option);
+      }
+      bedtimeInput.value = '22:00';
+    };
+
+    buildHoursOptions();
+    buildBedtimeOptions();
+    updateLabels();
+
+    hoursInput.addEventListener('change', updateLabels);
+    bedtimeInput.addEventListener('change', updateLabels);
+    button.addEventListener('click', calculate);
+
+    calculate();
+  </script>
+</body>
+</html>
